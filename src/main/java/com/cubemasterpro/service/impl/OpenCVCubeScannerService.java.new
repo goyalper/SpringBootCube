@@ -1,0 +1,194 @@
+package com.cubemasterpro.service.impl;
+
+import com.cubemasterpro.model.CubeColor;
+import com.cubemasterpro.model.CubeFace;
+import com.cubemasterpro.model.FacePosition;
+import com.cubemasterpro.service.CubeScannerService;
+import org.bytedeco.javacv.Frame;
+import org.bytedeco.javacv.OpenCVFrameConverter;
+import org.bytedeco.javacv.OpenCVFrameGrabber;
+import org.bytedeco.opencv.opencv_core.Mat;
+import org.bytedeco.opencv.opencv_core.Scalar;
+import org.bytedeco.opencv.global.opencv_imgproc;
+import org.bytedeco.opencv.global.opencv_core;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+
+import static org.bytedeco.opencv.global.opencv_core.bitwise_or;
+import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2HSV;
+import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
+
+/**
+ * Implementation of the CubeScannerService for scanning Rubik's Cube faces.
+ */
+@Service
+public class OpenCVCubeScannerService implements CubeScannerService {
+    
+    private static final int GRID_SIZE = 3; // 3x3 Rubik's Cube
+    
+    // Color ranges for cube face detection (HSV color space)
+    private static final Scalar WHITE_LOWER = new Scalar(0.0, 0.0, 200.0, 0.0);
+    private static final Scalar WHITE_UPPER = new Scalar(180.0, 30.0, 255.0, 0.0);
+    
+    private static final Scalar YELLOW_LOWER = new Scalar(20.0, 100.0, 100.0, 0.0);
+    private static final Scalar YELLOW_UPPER = new Scalar(30.0, 255.0, 255.0, 0.0);
+    
+    private static final Scalar RED_LOWER1 = new Scalar(0.0, 100.0, 100.0, 0.0);
+    private static final Scalar RED_UPPER1 = new Scalar(10.0, 255.0, 255.0, 0.0);
+    
+    private static final Scalar RED_LOWER2 = new Scalar(170.0, 100.0, 100.0, 0.0);
+    private static final Scalar RED_UPPER2 = new Scalar(180.0, 255.0, 255.0, 0.0);
+    
+    private static final Scalar ORANGE_LOWER = new Scalar(10.0, 100.0, 100.0, 0.0);
+    private static final Scalar ORANGE_UPPER = new Scalar(20.0, 255.0, 255.0, 0.0);
+    
+    private static final Scalar GREEN_LOWER = new Scalar(40.0, 100.0, 100.0, 0.0);
+    private static final Scalar GREEN_UPPER = new Scalar(80.0, 255.0, 255.0, 0.0);
+    
+    private static final Scalar BLUE_LOWER = new Scalar(100.0, 100.0, 100.0, 0.0);
+    private static final Scalar BLUE_UPPER = new Scalar(130.0, 255.0, 255.0, 0.0);
+    
+    private OpenCVFrameGrabber grabber;
+    private final OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat();
+    
+    @Override
+    public void initializeCamera() throws Exception {
+        // Initialize camera if not already done
+        if (grabber == null || !grabber.isStarted()) {
+            grabber = new OpenCVFrameGrabber(0);
+            grabber.start();
+        }
+    }
+    
+    @Override
+    public void closeCamera() throws Exception {
+        if (grabber != null && grabber.isStarted()) {
+            grabber.stop();
+            grabber.release();
+            grabber = null;
+        }
+    }
+    
+    @Override
+    public CubeFace scanFaceFromCamera(FacePosition position) throws Exception {
+        initializeCamera();
+        
+        // Grab a frame from the camera
+        Frame frame = grabber.grab();
+        if (frame == null) {
+            throw new RuntimeException("Failed to capture frame from camera");
+        }
+        
+        // Convert the frame to a Mat
+        Mat image = converter.convert(frame);
+        
+        // Process the image to detect the cube face
+        return processCubeImage(image, position);
+    }
+    
+    @Override
+    public CubeFace scanFaceFromImage(MultipartFile imageFile, FacePosition position) throws IOException {
+        // Convert the uploaded image to a Mat
+        byte[] imageBytes = imageFile.getBytes();
+        Mat image = opencv_core.imdecode(new Mat(imageBytes), opencv_core.IMREAD_COLOR);
+        
+        // Process the image to detect the cube face
+        return processCubeImage(image, position);
+    }
+    
+    @Override
+    public boolean validateCubeConfiguration(CubeFace[] faces) {
+        // Count the occurrences of each color
+        int[] colorCounts = new int[CubeColor.values().length];
+        
+        // For a valid cube, each color must appear exactly 9 times (center + 8 stickers)
+        for (CubeFace face : faces) {
+            if (face == null) {
+                return false; // Missing face
+            }
+            
+            for (int i = 0; i < CubeFace.FACE_SIZE; i++) {
+                for (int j = 0; j < CubeFace.FACE_SIZE; j++) {
+                    CubeColor color = face.getSticker(i, j);
+                    if (color == null) {
+                        return false; // Missing sticker
+                    }
+                    colorCounts[color.ordinal()]++;
+                }
+            }
+        }
+        
+        // Check if each color appears exactly 9 times
+        for (int count : colorCounts) {
+            if (count != 9) {
+                return false;
+            }
+        }
+        
+        // Check for valid center pieces (they determine the face's overall color)
+        // TODO: Implement center piece validation if needed
+        
+        return true;
+    }
+    
+    /**
+     * Process an image to detect and extract a Rubik's Cube face.
+     * @param image The input image containing a Rubik's Cube face.
+     * @param position The position of the face on the cube.
+     * @return The detected cube face with sticker colors.
+     */
+    private CubeFace processCubeImage(Mat image, FacePosition position) {
+        // Create a new face with the given position
+        CubeFace face = new CubeFace();
+        face.setPosition(position);
+        
+        // TODO: Implement proper image processing to detect cube face and sticker colors
+        // For now, use a simplified approach with fixed grid
+        
+        // Convert to HSV color space for better color detection
+        Mat hsv = new Mat();
+        cvtColor(image, hsv, COLOR_BGR2HSV);
+        
+        // Divide the image into a 3x3 grid and determine the color of each cell
+        int rows = image.rows();
+        int cols = image.cols();
+        int cellHeight = rows / GRID_SIZE;
+        int cellWidth = cols / GRID_SIZE;
+        
+        CubeColor[][] stickers = new CubeColor[GRID_SIZE][GRID_SIZE];
+        
+        for (int i = 0; i < GRID_SIZE; i++) {
+            for (int j = 0; j < GRID_SIZE; j++) {
+                // Extract the region for this sticker
+                int startRow = i * cellHeight;
+                int startCol = j * cellWidth;
+                
+                // Create a submatrix for this cell
+                Mat cell = hsv.apply(
+                    new opencv_core.Range(startRow, startRow + cellHeight),
+                    new opencv_core.Range(startCol, startCol + cellWidth)
+                );
+                
+                // Determine the color of this cell
+                CubeColor color = determineColor(cell);
+                stickers[i][j] = color;
+            }
+        }
+        
+        face.setStickers(stickers);
+        return face;
+    }
+    
+    /**
+     * Determine the color of a sticker from its HSV image.
+     * @param hsv The HSV image of the sticker.
+     * @return The determined color.
+     */
+    private CubeColor determineColor(Mat hsv) {
+        // For simplicity, return a default color for now
+        // In a real implementation, this would use color detection algorithms
+        return CubeColor.WHITE; // Placeholder
+    }
+}

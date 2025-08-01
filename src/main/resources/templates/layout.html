@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" 
+      xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title}">Rubik's Cube Solver</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Three.js -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    
+    <!-- Dark/Light mode toggle -->
+    <script>
+        // Check for system preference or saved preference
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-blue-600 dark:bg-blue-800 text-white shadow-md">
+        <div class="container mx-auto p-4 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <a th:href="@{/}" class="text-2xl font-bold">Rubik's Cube Solver</a>
+            </div>
+            
+            <nav x-data="{ open: false }" class="relative">
+                <!-- Mobile menu button -->
+                <button @click="open = !open" class="md:hidden flex items-center px-3 py-2 border rounded text-white border-white hover:text-gray-200 hover:border-gray-200">
+                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path x-show="!open" fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                        <path x-show="open" fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+                
+                <!-- Desktop menu -->
+                <div class="hidden md:flex space-x-6">
+                    <a th:href="@{/}" class="hover:text-gray-200">Home</a>
+                    <a th:href="@{/scan}" class="hover:text-gray-200">Scan Cube</a>
+                    <a th:href="@{/manual}" class="hover:text-gray-200">Manual Entry</a>
+                    <a th:href="@{/about}" class="hover:text-gray-200">About & Learn</a>
+                    
+                    <!-- Dark/Light mode toggle -->
+                    <button id="theme-toggle" class="hover:text-gray-200">
+                        <svg id="dark-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                        <svg id="light-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Mobile menu -->
+                <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 bg-blue-700 rounded-lg shadow-lg py-2 z-10 md:hidden">
+                    <a th:href="@{/}" class="block px-4 py-2 hover:bg-blue-800">Home</a>
+                    <a th:href="@{/scan}" class="block px-4 py-2 hover:bg-blue-800">Scan Cube</a>
+                    <a th:href="@{/manual}" class="block px-4 py-2 hover:bg-blue-800">Manual Entry</a>
+                    <a th:href="@{/about}" class="block px-4 py-2 hover:bg-blue-800">About & Learn</a>
+                    
+                    <!-- Dark/Light mode toggle in mobile menu -->
+                    <button id="theme-toggle-mobile" class="w-full text-left px-4 py-2 hover:bg-blue-800">
+                        <span id="dark-text" class="hidden">Dark Mode</span>
+                        <span id="light-text" class="hidden">Light Mode</span>
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="container mx-auto p-4 flex-grow">
+        <!-- Flash messages -->
+        <div th:if="${message}" class="mb-4 p-4 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-lg">
+            <p th:text="${message}">Success message</p>
+        </div>
+        
+        <div th:if="${error}" class="mb-4 p-4 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-lg">
+            <p th:text="${error}">Error message</p>
+        </div>
+        
+        <!-- Page content -->
+        <div layout:fragment="content">
+            <!-- Content will be replaced by the page-specific content -->
+            <p>Default content</p>
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-200 dark:bg-gray-800 py-4">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; 2025 Rubik's Cube Solver | Made with Spring Boot</p>
+        </div>
+    </footer>
+    
+    <!-- JavaScript -->
+    <script th:src="@{/js/main.js}"></script>
+    
+    <!-- Content-specific scripts -->
+    <div layout:fragment="scripts">
+        <!-- Page-specific scripts will be added here -->
+    </div>
+    
+    <!-- Theme toggle logic -->
+    <script>
+        // Set up theme toggle icons and texts based on current theme
+        function updateThemeUI() {
+            const isDark = document.documentElement.classList.contains('dark');
+            document.getElementById('dark-icon').classList.toggle('hidden', isDark);
+            document.getElementById('light-icon').classList.toggle('hidden', !isDark);
+            document.getElementById('dark-text').classList.toggle('hidden', isDark);
+            document.getElementById('light-text').classList.toggle('hidden', !isDark);
+        }
+        
+        // Initialize theme UI
+        document.addEventListener('DOMContentLoaded', updateThemeUI);
+        
+        // Add click handlers for theme toggles
+        document.getElementById('theme-toggle').addEventListener('click', function() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+            updateThemeUI();
+        });
+        
+        document.getElementById('theme-toggle-mobile').addEventListener('click', function() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+            updateThemeUI();
+        });
+    </script>
+</body>
+</html>

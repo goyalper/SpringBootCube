@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en" 
+      xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Scan Cube - Rubik's Cube Solver</title>
+    <style>
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+        
+        #videoElement {
+            width: 100%;
+            border-radius: 8px;
+        }
+        
+        .scan-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+        }
+        
+        .scan-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 2px;
+            width: 50%;
+            height: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+        }
+        
+        .scan-cell {
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        .cube-preview {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 2px;
+            width: 100%;
+            aspect-ratio: 1;
+        }
+        
+        .preview-sticker {
+            border: 1px solid #000;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold mb-6 text-center">Scan Your Cube</h1>
+            
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
+                <div x-data="{ 
+                    currentFace: 'UP',
+                    faces: [
+                        {id: 'UP', name: 'Up Face (White Center)'},
+                        {id: 'FRONT', name: 'Front Face (Green Center)'},
+                        {id: 'RIGHT', name: 'Right Face (Red Center)'},
+                        {id: 'BACK', name: 'Back Face (Blue Center)'},
+                        {id: 'LEFT', name: 'Left Face (Orange Center)'},
+                        {id: 'DOWN', name: 'Down Face (Yellow Center)'}
+                    ],
+                    scannedFaces: {}
+                }">
+                    <!-- Face selection tabs -->
+                    <div class="flex flex-wrap justify-center mb-6">
+                        <template x-for="face in faces" :key="face.id">
+                            <button 
+                                @click="currentFace = face.id" 
+                                :class="{'bg-blue-600 text-white': currentFace === face.id, 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200': currentFace !== face.id}"
+                                class="px-4 py-2 m-1 rounded-lg font-semibold transition-all">
+                                <span x-text="face.name"></span>
+                                <span x-show="scannedFaces[face.id]" class="ml-2 text-green-500">✓</span>
+                            </button>
+                        </template>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Video Capture Column -->
+                        <div>
+                            <h3 class="text-xl font-semibold mb-4 text-center">Camera Capture</h3>
+                            
+                            <div class="video-container mb-4">
+                                <video id="videoElement" autoplay playsinline></video>
+                                <div class="scan-overlay">
+                                    <div class="scan-grid">
+                                        <div class="scan-cell"></div>
+                                        <div class="scan-cell"></div>
+                                        <div class="scan-cell"></div>
+                                        <div class="scan-cell"></div>
+                                        <div class="scan-cell"></div>
+                                        <div class="scan-cell"></div>
+                                        <div class="scan-cell"></div>
+                                        <div class="scan-cell"></div>
+                                        <div class="scan-cell"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-center space-x-4">
+                                <button 
+                                    id="captureButton" 
+                                    @click="captureFace(currentFace)" 
+                                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow transition-all">
+                                    Capture
+                                </button>
+                                
+                                <form 
+                                    th:action="@{/scan/upload}" 
+                                    method="post" 
+                                    enctype="multipart/form-data" 
+                                    class="hidden" 
+                                    id="uploadForm">
+                                    <input type="file" name="faceImage" id="faceImageInput" accept="image/*" capture="environment">
+                                    <input type="hidden" name="position" :value="currentFace">
+                                </form>
+                                
+                                <button 
+                                    @click="document.getElementById('faceImageInput').click()" 
+                                    class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow transition-all">
+                                    Upload Image
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Preview Column -->
+                        <div>
+                            <h3 class="text-xl font-semibold mb-4 text-center">
+                                <span x-text="faces.find(f => f.id === currentFace).name"></span> Preview
+                            </h3>
+                            
+                            <div class="cube-preview-container">
+                                <canvas id="previewCanvas" class="hidden"></canvas>
+                                
+                                <div class="cube-preview mb-4" id="facePreview">
+                                    <!-- This will be populated dynamically with detected colors -->
+                                    <div class="preview-sticker" style="background-color: gray;"></div>
+                                    <div class="preview-sticker" style="background-color: gray;"></div>
+                                    <div class="preview-sticker" style="background-color: gray;"></div>
+                                    <div class="preview-sticker" style="background-color: gray;"></div>
+                                    <div class="preview-sticker" style="background-color: gray;"></div>
+                                    <div class="preview-sticker" style="background-color: gray;"></div>
+                                    <div class="preview-sticker" style="background-color: gray;"></div>
+                                    <div class="preview-sticker" style="background-color: gray;"></div>
+                                    <div class="preview-sticker" style="background-color: gray;"></div>
+                                </div>
+                                
+                                <div class="text-center mb-4">
+                                    <p x-show="!scannedFaces[currentFace]" class="text-gray-600 dark:text-gray-300">No face scanned yet.</p>
+                                    <p x-show="scannedFaces[currentFace]" class="text-green-600 dark:text-green-400">Face scanned successfully!</p>
+                                </div>
+                                
+                                <div class="flex justify-center">
+                                    <button 
+                                        x-show="scannedFaces[currentFace]"
+                                        @click="resetFace(currentFace)" 
+                                        class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg shadow transition-all">
+                                        Reset Face
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 text-center" x-show="Object.keys(scannedFaces).length === 6">
+                        <p class="text-green-600 dark:text-green-400 mb-4">All faces scanned successfully!</p>
+                        <form th:action="@{/manual/submit}" method="post" id="solveForm">
+                            <!-- Hidden inputs for cube data will be populated by JavaScript -->
+                            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-all">
+                                Solve Cube
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold mb-4 text-center">Scanning Instructions</h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">1. Select a Face</h3>
+                        <p>Click on the face tabs to select which face you want to scan.</p>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">2. Position Your Cube</h3>
+                        <p>Hold the cube so that the selected face is directly facing the camera. Align it with the grid overlay.</p>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">3. Capture the Face</h3>
+                        <p>Click the "Capture" button to scan the face. Make sure there's good lighting.</p>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">4. Verify Colors</h3>
+                        <p>Check that the detected colors are correct in the preview. If not, try again or use the manual entry.</p>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">5. Repeat for All Faces</h3>
+                        <p>Scan all six faces of the cube in any order.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div layout:fragment="scripts">
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const video = document.getElementById('videoElement');
+                const captureButton = document.getElementById('captureButton');
+                const previewCanvas = document.getElementById('previewCanvas');
+                const facePreview = document.getElementById('facePreview');
+                const uploadForm = document.getElementById('uploadForm');
+                const faceImageInput = document.getElementById('faceImageInput');
+                
+                // Initialize webcam
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    navigator.mediaDevices.getUserMedia({ video: true })
+                        .then(function(stream) {
+                            video.srcObject = stream;
+                        })
+                        .catch(function(error) {
+                            console.error("Error accessing the webcam:", error);
+                            alert("Could not access the webcam. Please use the Upload Image option instead.");
+                        });
+                }
+                
+                // Handle file upload
+                faceImageInput.addEventListener('change', function() {
+                    if (faceImageInput.files.length > 0) {
+                        uploadForm.submit();
+                    }
+                });
+                
+                // Simulated cube scanning function
+                window.captureFace = function(faceId) {
+                    const ctx = previewCanvas.getContext('2d');
+                    previewCanvas.width = video.videoWidth;
+                    previewCanvas.height = video.videoHeight;
+                    ctx.drawImage(video, 0, 0, previewCanvas.width, previewCanvas.height);
+                    
+                    // In a real implementation, this would process the image and detect colors
+                    // For simulation, we'll just generate random colors
+                    simulateColorDetection(faceId);
+                }
+                
+                window.resetFace = function(faceId) {
+                    // Reset the face in the Alpine.js store
+                    const alpine = document.querySelector('[x-data]').__x;
+                    const scannedFaces = {...alpine.$data.scannedFaces};
+                    delete scannedFaces[faceId];
+                    alpine.$data.scannedFaces = scannedFaces;
+                    
+                    // Reset the preview stickers
+                    const stickers = facePreview.querySelectorAll('.preview-sticker');
+                    stickers.forEach(sticker => {
+                        sticker.style.backgroundColor = 'gray';
+                    });
+                }
+                
+                function simulateColorDetection(faceId) {
+                    const colors = ['#FFFFFF', '#FFFF00', '#00FF00', '#0000FF', '#FF0000', '#FFA500'];
+                    const stickers = facePreview.querySelectorAll('.preview-sticker');
+                    
+                    // Set center piece color based on face
+                    const centerColor = {
+                        'UP': '#FFFFFF', // White
+                        'DOWN': '#FFFF00', // Yellow
+                        'FRONT': '#00FF00', // Green
+                        'BACK': '#0000FF', // Blue
+                        'RIGHT': '#FF0000', // Red
+                        'LEFT': '#FFA500' // Orange
+                    }[faceId];
+                    
+                    // For demo purposes, let's simulate a consistent face with the right center color
+                    stickers.forEach((sticker, index) => {
+                        if (index === 4) { // Center piece
+                            sticker.style.backgroundColor = centerColor;
+                        } else {
+                            // For a more realistic demo, we'll use mostly the same color for each face
+                            // with occasional different colors
+                            const random = Math.random();
+                            if (random < 0.8) {
+                                sticker.style.backgroundColor = centerColor;
+                            } else {
+                                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                                sticker.style.backgroundColor = randomColor;
+                            }
+                        }
+                    });
+                    
+                    // Store the face in the Alpine.js store
+                    const alpine = document.querySelector('[x-data]').__x;
+                    const scannedFaces = {...alpine.$data.scannedFaces};
+                    scannedFaces[faceId] = true;
+                    alpine.$data.scannedFaces = scannedFaces;
+                    
+                    // Check if all faces are scanned
+                    if (Object.keys(scannedFaces).length === 6) {
+                        populateSolveForm();
+                    }
+                }
+                
+                function populateSolveForm() {
+                    const form = document.getElementById('solveForm');
+                    const stickers = facePreview.querySelectorAll('.preview-sticker');
+                    
+                    // In a real implementation, we would populate hidden form fields
+                    // with the detected colors for each face
+                    // This is a simplified simulation
+                    
+                    // For now, we'll just ensure the form is ready to submit
+                    console.log("All faces scanned, ready to solve!");
+                }
+            });
+        </script>
+    </div>
+</body>
+</html>

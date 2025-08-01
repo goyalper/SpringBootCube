@@ -1,0 +1,104 @@
+/* Main Styles */
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.dark ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Cube Sticker Colors */
+.sticker-white {
+    background-color: #FFFFFF;
+    border: 1px solid #CCCCCC;
+}
+
+.sticker-yellow {
+    background-color: #FFFF00;
+    border: 1px solid #CCCC00;
+}
+
+.sticker-green {
+    background-color: #00FF00;
+    border: 1px solid #00CC00;
+}
+
+.sticker-blue {
+    background-color: #0000FF;
+    border: 1px solid #0000CC;
+}
+
+.sticker-red {
+    background-color: #FF0000;
+    border: 1px solid #CC0000;
+}
+
+.sticker-orange {
+    background-color: #FFA500;
+    border: 1px solid #CC8500;
+}
+
+/* Animation for cube rotation */
+@keyframes rotate {
+    from {
+        transform: rotateX(0) rotateY(0);
+    }
+    to {
+        transform: rotateX(360deg) rotateY(360deg);
+    }
+}
+
+.rotate-animation {
+    animation: rotate 10s infinite linear;
+}
+
+/* Media queries for responsive design */
+@media (max-width: 768px) {
+    .cube-face {
+        max-width: 200px;
+    }
+}
+
+@media (max-width: 480px) {
+    .cube-face {
+        max-width: 150px;
+    }
+}
+
+/* Page transitions */
+.page-transition {
+    transition: opacity 0.3s ease-in-out;
+}
+
+.page-transition.fade-in {
+    opacity: 1;
+}
+
+.page-transition.fade-out {
+    opacity: 0;
+}

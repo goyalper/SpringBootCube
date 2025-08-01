@@ -1,0 +1,16 @@
+/workspaces/SpringBootCube/src/main/java/com/cubemasterpro/model/RubiksCube.java
+/workspaces/SpringBootCube/src/main/java/com/cubemasterpro/controller/ApiController.java
+/workspaces/SpringBootCube/src/main/java/com/cubemasterpro/model/CubeSolution.java
+/workspaces/SpringBootCube/src/main/java/com/cubemasterpro/model/MoveType.java
+/workspaces/SpringBootCube/src/main/java/com/cubemasterpro/service/impl/OpenCVCubeScannerService.java
+/workspaces/SpringBootCube/src/main/java/com/cubemasterpro/model/CubeFace.java
+/workspaces/SpringBootCube/src/main/java/com/cubemasterpro/SpringBootCubeApplication.java
+/workspaces/SpringBootCube/src/main/java/com/cubemasterpro/util/KociembaAlgorithm.java
+/workspaces/SpringBootCube/src/main/java/com/cubemasterpro/service/CubeSolverService.java
+/workspaces/SpringBootCube/src/main/java/com/cubemasterpro/controller/CubeController.java
+/workspaces/SpringBootCube/src/main/java/com/cubemasterpro/model/CubeColor.java
+/workspaces/SpringBootCube/src/main/java/com/cubemasterpro/model/FacePosition.java
+/workspaces/SpringBootCube/src/main/java/com/cubemasterpro/controller/HomeController.java
+/workspaces/SpringBootCube/src/main/java/com/cubemasterpro/service/CubeScannerService.java
+/workspaces/SpringBootCube/src/main/java/com/cubemasterpro/service/impl/KociembaCubeSolverService.java
+/workspaces/SpringBootCube/src/main/java/com/cubemasterpro/model/CubeMove.java

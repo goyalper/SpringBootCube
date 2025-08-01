@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en" 
+      xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Solution - Rubik's Cube Solver</title>
+    <style>
+        .cube-display {
+            width: 100%;
+            height: 400px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .move-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .move-button {
+            font-family: monospace;
+            font-weight: bold;
+            padding: 6px 12px;
+            margin: 4px;
+            border-radius: 4px;
+            background-color: #e0e0e0;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .move-button:hover {
+            background-color: #d0d0d0;
+        }
+        
+        .move-button.active {
+            background-color: #4a89dc;
+            color: white;
+            border-color: #3a79cc;
+        }
+        
+        .controls-container {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .control-button {
+            padding: 8px 16px;
+            border-radius: 4px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        
+        .control-button:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .control-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .dark .cube-display {
+            background-color: #333;
+        }
+        
+        .dark .move-button {
+            background-color: #555;
+            border-color: #444;
+            color: #eee;
+        }
+        
+        .dark .move-button:hover {
+            background-color: #666;
+        }
+        
+        .dark .control-button {
+            background-color: #444;
+            border-color: #333;
+            color: #eee;
+        }
+        
+        .dark .control-button:hover {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold mb-6 text-center">Cube Solution</h1>
+            
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
+                <div x-data="{ 
+                    currentStep: 0,
+                    totalSteps: 0,
+                    moves: [],
+                    isPlaying: false,
+                    playbackSpeed: 1,
+                    initialized: false
+                }">
+                    <!-- 3D Cube Visualization -->
+                    <div class="cube-display" id="cubeCanvas"></div>
+                    
+                    <!-- Controls -->
+                    <div class="controls-container">
+                        <button 
+                            @click="if (currentStep > 0) { currentStep--; updateCubeDisplay(); }"
+                            :disabled="currentStep === 0"
+                            class="control-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M15.707 15.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                                <path fill-rule="evenodd" d="M7.707 15.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 111.414 1.414L3.414 10l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Previous</span>
+                        </button>
+                        
+                        <button 
+                            @click="togglePlayback()"
+                            class="control-button">
+                            <template x-if="!isPlaying">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                                </svg>
+                            </template>
+                            <template x-if="isPlaying">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                            </template>
+                            <span x-text="isPlaying ? 'Pause' : 'Play'"></span>
+                        </button>
+                        
+                        <button 
+                            @click="if (currentStep < totalSteps) { currentStep++; updateCubeDisplay(); }"
+                            :disabled="currentStep >= totalSteps"
+                            class="control-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10.293 15.707a1 1 0 010-1.414L14.586 10l-4.293-4.293a1 1 0 111.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                <path fill-rule="evenodd" d="M4.293 15.707a1 1 0 010-1.414L8.586 10 4.293 5.707a1 1 0 011.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Next</span>
+                        </button>
+                        
+                        <button 
+                            @click="resetCube()"
+                            class="control-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Reset</span>
+                        </button>
+                        
+                        <div class="flex items-center">
+                            <span class="mr-2">Speed:</span>
+                            <select 
+                                x-model="playbackSpeed"
+                                @change="updatePlaybackSpeed()"
+                                class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1">
+                                <option value="0.5">0.5x</option>
+                                <option value="1">1x</option>
+                                <option value="2">2x</option>
+                                <option value="3">3x</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Solution Information -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <div>
+                            <h3 class="text-xl font-semibold mb-4">Solution Steps</h3>
+                            <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 move-list">
+                                <div class="flex flex-wrap" id="movesList">
+                                    <!-- Will be populated dynamically -->
+                                    <div th:each="move, stat : ${solution.moves}" 
+                                         th:text="${move}"
+                                         th:attr="data-index=${stat.index}"
+                                         class="move-button"
+                                         @click="jumpToStep($event.target.getAttribute('data-index'))">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <p>
+                                    <span class="font-semibold">Total Moves:</span>
+                                    <span th:text="${solution.totalMoveCount}" id="totalMoves">0</span>
+                                </p>
+                                <p>
+                                    <span class="font-semibold">Current Step:</span>
+                                    <span x-text="currentStep + ' / ' + totalSteps">0 / 0</span>
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-xl font-semibold mb-4">Cube Notation</h3>
+                            <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-4">
+                                <p class="mb-2"><strong>F</strong> - Front face clockwise</p>
+                                <p class="mb-2"><strong>B</strong> - Back face clockwise</p>
+                                <p class="mb-2"><strong>U</strong> - Up face clockwise</p>
+                                <p class="mb-2"><strong>D</strong> - Down face clockwise</p>
+                                <p class="mb-2"><strong>L</strong> - Left face clockwise</p>
+                                <p class="mb-2"><strong>R</strong> - Right face clockwise</p>
+                                <p class="mb-2"><strong>'</strong> - Counterclockwise (e.g., F')</p>
+                                <p><strong>2</strong> - Double turn (e.g., F2)</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 text-center">
+                        <a th:href="@{/}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow transition-all inline-block">
+                            Start New Solve
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div layout:fragment="scripts">
+        <script th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', function() {
+                // Get the solution from Thymeleaf
+                const solutionMoves = /*[[${solution.moves}]]*/ [];
+                const totalMoveCount = /*[[${solution.totalMoveCount}]]*/ 0;
+                
+                // Initialize Alpine.js data
+                const alpine = document.querySelector('[x-data]').__x;
+                alpine.$data.moves = solutionMoves;
+                alpine.$data.totalSteps = solutionMoves.length;
+                alpine.$data.initialized = true;
+                
+                // Initialize the 3D cube
+                initCube();
+                
+                // Toggle playback function
+                alpine.$data.togglePlayback = function() {
+                    this.isPlaying = !this.isPlaying;
+                    
+                    if (this.isPlaying) {
+                        this.playAnimation();
+                    }
+                };
+                
+                // Play animation function
+                alpine.$data.playAnimation = function() {
+                    if (!this.isPlaying || this.currentStep >= this.totalSteps) {
+                        this.isPlaying = false;
+                        return;
+                    }
+                    
+                    this.currentStep++;
+                    this.updateCubeDisplay();
+                    
+                    // Highlight the current move in the moves list
+                    const moveButtons = document.querySelectorAll('.move-button');
+                    moveButtons.forEach((button, index) => {
+                        button.classList.toggle('active', index === this.currentStep - 1);
+                    });
+                    
+                    setTimeout(() => {
+                        if (this.isPlaying) {
+                            this.playAnimation();
+                        }
+                    }, 1000 / this.playbackSpeed);
+                };
+                
+                // Reset cube function
+                alpine.$data.resetCube = function() {
+                    this.currentStep = 0;
+                    this.isPlaying = false;
+                    this.updateCubeDisplay();
+                    
+                    // Reset move highlighting
+                    const moveButtons = document.querySelectorAll('.move-button');
+                    moveButtons.forEach(button => {
+                        button.classList.remove('active');
+                    });
+                };
+                
+                // Jump to step function
+                alpine.$data.jumpToStep = function(step) {
+                    const stepIndex = parseInt(step);
+                    this.currentStep = stepIndex + 1;
+                    this.updateCubeDisplay();
+                    
+                    // Highlight the current move in the moves list
+                    const moveButtons = document.querySelectorAll('.move-button');
+                    moveButtons.forEach((button, index) => {
+                        button.classList.toggle('active', index === stepIndex);
+                    });
+                };
+                
+                // Update playback speed
+                alpine.$data.updatePlaybackSpeed = function() {
+                    // No additional action needed, the binding to x-model takes care of it
+                };
+                
+                // Update cube display
+                alpine.$data.updateCubeDisplay = function() {
+                    // This would be implemented with Three.js to update the 3D cube
+                    console.log(`Displaying step ${this.currentStep} of ${this.totalSteps}`);
+                };
+            });
+            
+            function initCube() {
+                // Initialize the 3D cube visualization using Three.js
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(75, window.innerWidth / 400, 0.1, 1000);
+                
+                const renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize(document.querySelector('.cube-display').offsetWidth, 400);
+                renderer.setClearColor(0xf0f0f0, 1);
+                
+                // Set renderer based on dark/light mode
+                if (document.documentElement.classList.contains('dark')) {
+                    renderer.setClearColor(0x333333, 1);
+                }
+                
+                document.getElementById('cubeCanvas').appendChild(renderer.domElement);
+                
+                // Add a simple cube for now
+                // In a real implementation, this would be a 3x3 Rubik's Cube model
+                const geometry = new THREE.BoxGeometry(3, 3, 3);
+                const materials = [
+                    new THREE.MeshBasicMaterial({ color: 0xff0000 }), // Right - Red
+                    new THREE.MeshBasicMaterial({ color: 0xffa500 }), // Left - Orange
+                    new THREE.MeshBasicMaterial({ color: 0xffffff }), // Up - White
+                    new THREE.MeshBasicMaterial({ color: 0xffff00 }), // Down - Yellow
+                    new THREE.MeshBasicMaterial({ color: 0x00ff00 }), // Front - Green
+                    new THREE.MeshBasicMaterial({ color: 0x0000ff })  // Back - Blue
+                ];
+                
+                const cube = new THREE.Mesh(geometry, materials);
+                scene.add(cube);
+                
+                camera.position.z = 5;
+                
+                // Add lighting
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+                scene.add(ambientLight);
+                
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+                directionalLight.position.set(0, 1, 1);
+                scene.add(directionalLight);
+                
+                // Animation loop
+                function animate() {
+                    requestAnimationFrame(animate);
+                    cube.rotation.x += 0.005;
+                    cube.rotation.y += 0.01;
+                    renderer.render(scene, camera);
+                }
+                
+                animate();
+                
+                // Resize handling
+                window.addEventListener('resize', function() {
+                    renderer.setSize(document.querySelector('.cube-display').offsetWidth, 400);
+                    camera.aspect = document.querySelector('.cube-display').offsetWidth / 400;
+                    camera.updateProjectionMatrix();
+                });
+            }
+        </script>
+    </div>
+</body>
+</html>

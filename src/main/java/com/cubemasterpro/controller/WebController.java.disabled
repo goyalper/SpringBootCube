@@ -1,0 +1,137 @@
+package com.cubemasterpro.controller;
+
+import java.io.IOException;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import com.cubemasterpro.model.CubeFace;
+import com.cubemasterpro.model.CubeSolution;
+import com.cubemasterpro.model.FacePosition;
+import com.cubemasterpro.model.RubiksCube;
+import com.cubemasterpro.service.CubeScannerService;
+import com.cubemasterpro.service.CubeSolverService;
+
+/**
+ * Controller for handling web requests.
+ */
+@Controller
+public class WebController {
+    
+    @Autowired
+    private CubeScannerService scannerService;
+    
+    @Autowired
+    private CubeSolverService solverService;
+    
+    /**
+     * Home page.
+     */
+    @GetMapping("/")
+    public String home(Model model) {
+        model.addAttribute("title", "Rubik's Cube Solver - Home");
+        return "home";
+    }
+    
+    /**
+     * Manual entry page.
+     */
+    @GetMapping("/manual")
+    public String manual(Model model) {
+        model.addAttribute("title", "Manual Entry - Rubik's Cube Solver");
+        return "manual";
+    }
+    
+    /**
+     * Scan cube page.
+     */
+    @GetMapping("/scan")
+    public String scan(Model model) {
+        model.addAttribute("title", "Scan Cube - Rubik's Cube Solver");
+        return "scan";
+    }
+    
+    /**
+     * About & Learn page.
+     */
+    @GetMapping("/about")
+    public String about(Model model) {
+        model.addAttribute("title", "About & Learn - Rubik's Cube Solver");
+        return "about";
+    }
+    
+    /**
+     * Handle manual form submission.
+     */
+    @PostMapping("/manual/submit")
+    public String manualSubmit(@RequestParam Map<String, String> formData, 
+                               Model model, 
+                               RedirectAttributes redirectAttributes) {
+        try {
+            // Parse the form data to create a RubiksCube object
+            RubiksCube cube = parseManualFormData(formData);
+            
+            // Check if the cube is valid
+            if (!cube.isValidState()) {
+                redirectAttributes.addFlashAttribute("error", "Invalid cube configuration. Please check your input.");
+                return "redirect:/manual";
+            }
+            
+            // Check if the cube is solvable
+            if (!solverService.isSolvable(cube)) {
+                redirectAttributes.addFlashAttribute("error", "This cube configuration is not solvable. Please check your input.");
+                return "redirect:/manual";
+            }
+            
+            // Solve the cube
+            CubeSolution solution = solverService.solve(cube);
+            
+            // Add the solution to the model
+            model.addAttribute("solution", solution);
+            model.addAttribute("title", "Solution - Rubik's Cube Solver");
+            
+            return "solution";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "An error occurred: " + e.getMessage());
+            return "redirect:/manual";
+        }
+    }
+    
+    /**
+     * Handle scan form submission.
+     */
+    @PostMapping("/scan/upload")
+    public String scanUpload(@RequestParam("faceImage") MultipartFile faceImage,
+                            @RequestParam("position") FacePosition position,
+                            RedirectAttributes redirectAttributes) {
+        try {
+            // Scan the face from the image
+            CubeFace face = scannerService.scanFaceFromImage(faceImage, position);
+            
+            // Store the face in the session (for a real app, use a session-based approach)
+            // For simplicity, we'll redirect back to the scan page
+            redirectAttributes.addFlashAttribute("message", "Face scanned successfully!");
+            
+            return "redirect:/scan";
+        } catch (IOException e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to scan face: " + e.getMessage());
+            return "redirect:/scan";
+        }
+    }
+    
+    /**
+     * Parse the manual form data into a RubiksCube object.
+     */
+    private RubiksCube parseManualFormData(Map<String, String> formData) {
+        // In a real implementation, this would parse the form data and create a RubiksCube object
+        // For simplicity, we'll just return a solved cube
+        return RubiksCube.createSolvedCube();
+    }
+}

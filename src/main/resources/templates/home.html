@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" 
+      xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Rubik's Cube Solver - Home</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="max-w-4xl mx-auto">
+            <section class="text-center mb-12">
+                <h1 class="text-4xl md:text-6xl font-bold mb-4 text-blue-600 dark:text-blue-400">Rubik's Cube Solver</h1>
+                <p class="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8">
+                    Scan or manually input your cube and get the optimal solution.
+                </p>
+                
+                <div class="flex flex-col md:flex-row justify-center gap-6 mb-8">
+                    <a th:href="@{/scan}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-all">
+                        <div class="flex flex-col items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span class="text-xl">Scan Cube</span>
+                        </div>
+                    </a>
+                    
+                    <a th:href="@{/manual}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-all">
+                        <div class="flex flex-col items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 0L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            <span class="text-xl">Manual Entry</span>
+                        </div>
+                    </a>
+                </div>
+            </section>
+            
+            <section class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-12">
+                <h2 class="text-2xl font-bold mb-4 text-center">How It Works</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="text-center p-4">
+                        <div class="bg-blue-100 dark:bg-blue-900 rounded-full p-4 inline-block mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-600 dark:text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">1. Input Your Cube</h3>
+                        <p class="text-gray-600 dark:text-gray-300">Use your webcam to scan each face or manually select colors.</p>
+                    </div>
+                    
+                    <div class="text-center p-4">
+                        <div class="bg-green-100 dark:bg-green-900 rounded-full p-4 inline-block mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-600 dark:text-green-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">2. Calculate Solution</h3>
+                        <p class="text-gray-600 dark:text-gray-300">Our algorithm finds the optimal solution in 20 moves or less.</p>
+                    </div>
+                    
+                    <div class="text-center p-4">
+                        <div class="bg-purple-100 dark:bg-purple-900 rounded-full p-4 inline-block mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-purple-600 dark:text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">3. Follow the Steps</h3>
+                        <p class="text-gray-600 dark:text-gray-300">View the solution with our interactive 3D visualization.</p>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-12">
+                <h2 class="text-2xl font-bold mb-4 text-center">Features</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="flex items-start">
+                        <div class="bg-blue-100 dark:bg-blue-900 rounded-full p-2 mr-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 dark:text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold mb-1">Camera Scanning</h3>
+                            <p class="text-gray-600 dark:text-gray-300">Use your webcam to automatically detect cube colors.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <div class="bg-blue-100 dark:bg-blue-900 rounded-full p-2 mr-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 dark:text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold mb-1">Manual Input</h3>
+                            <p class="text-gray-600 dark:text-gray-300">Enter cube colors manually with our intuitive interface.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <div class="bg-blue-100 dark:bg-blue-900 rounded-full p-2 mr-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 dark:text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold mb-1">3D Visualization</h3>
+                            <p class="text-gray-600 dark:text-gray-300">Interactive 3D model to demonstrate the solution.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <div class="bg-blue-100 dark:bg-blue-900 rounded-full p-2 mr-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 dark:text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold mb-1">Optimal Algorithm</h3>
+                            <p class="text-gray-600 dark:text-gray-300">Uses Kociemba's Two-Phase Algorithm for efficient solutions.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <div class="bg-blue-100 dark:bg-blue-900 rounded-full p-2 mr-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 dark:text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold mb-1">Dark/Light Mode</h3>
+                            <p class="text-gray-600 dark:text-gray-300">Choose your preferred theme for better visibility.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <div class="bg-blue-100 dark:bg-blue-900 rounded-full p-2 mr-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 dark:text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold mb-1">Responsive Design</h3>
+                            <p class="text-gray-600 dark:text-gray-300">Works on desktop, tablet, and mobile devices.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="text-center">
+                <a th:href="@{/about}" class="inline-block bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold py-3 px-6 rounded-lg transition-all">
+                    Learn More About Rubik's Cube
+                </a>
+            </section>
+        </div>
+    </div>
+</body>
+</html>

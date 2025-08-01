@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" 
+      xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>About & Learn - Rubik's Cube Solver</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold mb-6 text-center">About & Learn</h1>
+            
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold mb-4">The Rubik's Cube</h2>
+                
+                <p class="mb-4">
+                    The Rubik's Cube is a 3D combination puzzle invented in 1974 by Hungarian sculptor and professor of architecture Ernő Rubik. 
+                    Originally called the "Magic Cube", it was licensed by Rubik to be sold by Ideal Toy Corp in 1980 and won the German Game of the Year 
+                    special award for Best Puzzle that year.
+                </p>
+                
+                <p class="mb-4">
+                    A standard Rubik's Cube has six faces, each covered by nine stickers of six solid colors: white, yellow, orange, red, green, and blue. 
+                    The puzzle consists of twenty-six miniature cubes, or "cubies", with colored stickers that rotate on a central pivot mechanism.
+                </p>
+                
+                <p class="mb-4">
+                    The puzzle is solved when each face of the cube displays only one color.
+                </p>
+                
+                <div class="my-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">Fascinating Facts</h3>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li>There are 43,252,003,274,489,856,000 possible configurations of the Rubik's Cube.</li>
+                            <li>The current world record for solving the Rubik's Cube is 3.47 seconds, set by Yusheng Du in 2018.</li>
+                            <li>Any Rubik's Cube can be solved in 20 moves or less (known as "God's Number").</li>
+                            <li>Over 450 million Rubik's Cubes have been sold worldwide, making it the world's top-selling puzzle game.</li>
+                            <li>The first world championship was held in Budapest in 1982.</li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">Applications</h3>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li>Solving the Rubik's Cube has been used to teach algorithmic thinking and problem-solving skills.</li>
+                            <li>The cube has applications in group theory, a branch of abstract algebra.</li>
+                            <li>Cube-solving algorithms are used to demonstrate concepts in computer science and artificial intelligence.</li>
+                            <li>The puzzle is used in education to illustrate concepts of symmetry, combinatorics, and permutations.</li>
+                            <li>Solving techniques have been applied to other sequential decision-making problems.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold mb-4">Cube Notation</h2>
+                
+                <p class="mb-4">
+                    Standard Rubik's Cube notation uses letters to represent the face that should be turned, and modifiers to indicate the direction of the turn.
+                </p>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                        <h3 class="text-lg font-semibold mb-2">Face Letters</h3>
+                        <p><strong>F</strong> - Front face</p>
+                        <p><strong>B</strong> - Back face</p>
+                        <p><strong>U</strong> - Up face</p>
+                        <p><strong>D</strong> - Down face</p>
+                        <p><strong>L</strong> - Left face</p>
+                        <p><strong>R</strong> - Right face</p>
+                    </div>
+                    
+                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                        <h3 class="text-lg font-semibold mb-2">Modifiers</h3>
+                        <p><strong>(none)</strong> - Clockwise 90° turn</p>
+                        <p><strong>'</strong> - Counterclockwise 90° turn</p>
+                        <p><strong>2</strong> - 180° turn (twice)</p>
+                    </div>
+                    
+                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                        <h3 class="text-lg font-semibold mb-2">Examples</h3>
+                        <p><strong>R</strong> - Right face clockwise</p>
+                        <p><strong>U'</strong> - Up face counterclockwise</p>
+                        <p><strong>F2</strong> - Front face 180° turn</p>
+                        <p><strong>L' D R</strong> - Sequence of 3 moves</p>
+                    </div>
+                </div>
+                
+                <div class="flex justify-center">
+                    <img th:src="@{/img/cube-notation.png}" alt="Cube Notation Diagram" class="max-w-md w-full rounded-lg shadow-md">
+                </div>
+            </div>
+            
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold mb-4">Solving Methods</h2>
+                
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">Beginner's Method</h3>
+                        <p class="mb-2">
+                            The beginner's method is a layer-by-layer approach that's easy to learn but requires more moves.
+                        </p>
+                        <ol class="list-decimal pl-5 space-y-1">
+                            <li>Solve the first layer cross</li>
+                            <li>Solve the first layer corners</li>
+                            <li>Solve the middle layer edges</li>
+                            <li>Solve the last layer cross</li>
+                            <li>Position the last layer edges</li>
+                            <li>Position the last layer corners</li>
+                            <li>Orient the last layer corners</li>
+                        </ol>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">CFOP Method (Fridrich Method)</h3>
+                        <p class="mb-2">
+                            CFOP is the most popular speedcubing method, used by most world champions.
+                        </p>
+                        <ol class="list-decimal pl-5 space-y-1">
+                            <li><strong>C</strong>ross - Solve the bottom cross</li>
+                            <li><strong>F</strong>2L - First 2 Layers - Solve corners and edges simultaneously</li>
+                            <li><strong>O</strong>LL - Orient Last Layer - Make the top face a single color</li>
+                            <li><strong>P</strong>LL - Permute Last Layer - Rearrange the pieces while keeping orientation</li>
+                        </ol>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">Roux Method</h3>
+                        <p class="mb-2">
+                            An alternative speedcubing method that uses fewer moves and rotations.
+                        </p>
+                        <ol class="list-decimal pl-5 space-y-1">
+                            <li>Build a 1x2x3 block on the left</li>
+                            <li>Build a 1x2x3 block on the right</li>
+                            <li>Solve the top corners and orient edges</li>
+                            <li>Solve the remaining edges</li>
+                        </ol>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">Kociemba's Algorithm (Two-Phase Algorithm)</h3>
+                        <p class="mb-2">
+                            This is the algorithm our solver uses. It can find a solution in 20 moves or less.
+                        </p>
+                        <p>
+                            Developed by Herbert Kociemba, this algorithm works in two phases:
+                        </p>
+                        <ol class="list-decimal pl-5 space-y-1">
+                            <li>Transform the cube to a state where each face has either the same color or the opposite color in each position</li>
+                            <li>Solve the cube using only half-turn moves of the up and down faces, and quarter and half-turn moves of the other faces</li>
+                        </ol>
+                        <p class="mt-2">
+                            The algorithm is very efficient and can solve any valid cube state optimally or near-optimally.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold mb-4">Tips for Speedcubing</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">Practice Tips</h3>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li>Learn finger tricks to make turns faster and smoother</li>
+                            <li>Practice algorithms until they become muscle memory</li>
+                            <li>Time your solves and track your progress</li>
+                            <li>Break down your solve into steps and practice each one separately</li>
+                            <li>Learn to look ahead - plan your next moves while executing the current ones</li>
+                            <li>Start slow and focus on accuracy before speed</li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">Equipment Tips</h3>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li>Use a good quality speedcube (not the original Rubik's brand)</li>
+                            <li>Keep your cube clean and lubricated</li>
+                            <li>Adjust the tension to match your turning style</li>
+                            <li>Consider the size of the cube - standard is 56mm, but smaller ones may be faster</li>
+                            <li>Break in a new cube by doing hundreds of solves</li>
+                            <li>Find the right cube for you - different brands have different feels</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mb-8">
+                <a th:href="@{/}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-all">
+                    Start Solving
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

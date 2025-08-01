@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en" 
+      xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Manual Entry - Rubik's Cube Solver</title>
+    <style>
+        .cube-face {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 4px;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+        
+        .cube-sticker {
+            aspect-ratio: 1;
+            border: 2px solid #000;
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .color-picker {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #000;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .color-option.selected {
+            transform: scale(1.2);
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold mb-6 text-center">Manual Cube Entry</h1>
+            
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
+                <p class="mb-4 text-center">Select the colors for each face of your Rubik's Cube.</p>
+                
+                <div x-data="{ 
+                    currentFace: 'UP',
+                    selectedColor: 'white',
+                    faces: [
+                        {id: 'UP', name: 'Up Face (White Center)'},
+                        {id: 'FRONT', name: 'Front Face (Green Center)'},
+                        {id: 'RIGHT', name: 'Right Face (Red Center)'},
+                        {id: 'BACK', name: 'Back Face (Blue Center)'},
+                        {id: 'LEFT', name: 'Left Face (Orange Center)'},
+                        {id: 'DOWN', name: 'Down Face (Yellow Center)'}
+                    ],
+                    colors: [
+                        {name: 'white', hex: '#FFFFFF'},
+                        {name: 'yellow', hex: '#FFFF00'},
+                        {name: 'green', hex: '#00FF00'},
+                        {name: 'blue', hex: '#0000FF'},
+                        {name: 'red', hex: '#FF0000'},
+                        {name: 'orange', hex: '#FFA500'}
+                    ]
+                }">
+                    <!-- Face selection tabs -->
+                    <div class="flex flex-wrap justify-center mb-6">
+                        <template x-for="face in faces" :key="face.id">
+                            <button 
+                                @click="currentFace = face.id" 
+                                :class="{'bg-blue-600 text-white': currentFace === face.id, 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200': currentFace !== face.id}"
+                                class="px-4 py-2 m-1 rounded-lg font-semibold transition-all">
+                                <span x-text="face.name"></span>
+                            </button>
+                        </template>
+                    </div>
+                    
+                    <!-- Color picker -->
+                    <div class="color-picker">
+                        <template x-for="color in colors" :key="color.name">
+                            <div 
+                                @click="selectedColor = color.name" 
+                                :style="'background-color: ' + color.hex" 
+                                :class="{'selected': selectedColor === color.name}"
+                                class="color-option"
+                                :title="color.name.charAt(0).toUpperCase() + color.name.slice(1)">
+                            </div>
+                        </template>
+                    </div>
+                    
+                    <form th:action="@{/manual/submit}" method="post" class="space-y-6">
+                        <!-- Cube faces -->
+                        <template x-for="face in faces" :key="face.id">
+                            <div x-show="currentFace === face.id" class="mb-6">
+                                <h3 x-text="face.name" class="text-xl font-semibold mb-4 text-center"></h3>
+                                
+                                <div class="cube-face">
+                                    <template x-for="row in [0, 1, 2]">
+                                        <template x-for="col in [0, 1, 2]">
+                                            <div>
+                                                <input type="hidden" :name="face.id + '_' + row + '_' + col" :id="face.id + '_' + row + '_' + col">
+                                                
+                                                <div 
+                                                    class="cube-sticker" 
+                                                    :style="'background-color: ' + document.getElementById(face.id + '_' + row + '_' + col)?.value || (row === 1 && col === 1 ? getDefaultColor(face.id) : 'gray')"
+                                                    @click="setColor(face.id, row, col, selectedColor)">
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                        
+                        <div class="flex justify-center space-x-4">
+                            <button type="button" @click="resetCube()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg shadow transition-all">
+                                Reset
+                            </button>
+                            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow transition-all">
+                                Solve Cube
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold mb-4 text-center">Instructions</h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">1. Select a Face</h3>
+                        <p>Click on the face tabs to select which face you want to edit.</p>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">2. Choose a Color</h3>
+                        <p>Select a color from the color picker at the top.</p>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">3. Apply to Stickers</h3>
+                        <p>Click on the stickers to apply the selected color.</p>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">4. Complete All Faces</h3>
+                        <p>Make sure to set all six faces correctly. The center stickers are pre-set and cannot be changed.</p>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">5. Submit</h3>
+                        <p>When you're done, click "Solve Cube" to get the solution.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div layout:fragment="scripts">
+        <script>
+            function getDefaultColor(faceId) {
+                switch(faceId) {
+                    case 'UP': return '#FFFFFF'; // White
+                    case 'DOWN': return '#FFFF00'; // Yellow
+                    case 'FRONT': return '#00FF00'; // Green
+                    case 'BACK': return '#0000FF'; // Blue
+                    case 'RIGHT': return '#FF0000'; // Red
+                    case 'LEFT': return '#FFA500'; // Orange
+                    default: return 'gray';
+                }
+            }
+            
+            function setColor(faceId, row, col, color) {
+                // Don't allow changing center pieces
+                if (row === 1 && col === 1) return;
+                
+                const inputElement = document.getElementById(faceId + '_' + row + '_' + col);
+                inputElement.value = color;
+                
+                // Update the sticker color
+                const hexColor = {
+                    'white': '#FFFFFF',
+                    'yellow': '#FFFF00',
+                    'green': '#00FF00',
+                    'blue': '#0000FF',
+                    'red': '#FF0000',
+                    'orange': '#FFA500'
+                }[color];
+                
+                inputElement.nextElementSibling.style.backgroundColor = hexColor;
+            }
+            
+            function resetCube() {
+                if (!confirm('Are you sure you want to reset all cube faces?')) return;
+                
+                const faces = ['UP', 'DOWN', 'FRONT', 'BACK', 'RIGHT', 'LEFT'];
+                
+                for (const face of faces) {
+                    for (let row = 0; row < 3; row++) {
+                        for (let col = 0; col < 3; col++) {
+                            // Skip center pieces
+                            if (row === 1 && col === 1) continue;
+                            
+                            const inputElement = document.getElementById(face + '_' + row + '_' + col);
+                            inputElement.value = '';
+                            inputElement.nextElementSibling.style.backgroundColor = 'gray';
+                        }
+                    }
+                }
+            }
+            
+            // Initialize the cube
+            document.addEventListener('DOMContentLoaded', function() {
+                const faces = ['UP', 'DOWN', 'FRONT', 'BACK', 'RIGHT', 'LEFT'];
+                
+                for (const face of faces) {
+                    // Set the center pieces to their default colors
+                    const centerInput = document.getElementById(face + '_1_1');
+                    if (centerInput) {
+                        const defaultColor = {
+                            'UP': 'white',
+                            'DOWN': 'yellow',
+                            'FRONT': 'green',
+                            'BACK': 'blue',
+                            'RIGHT': 'red',
+                            'LEFT': 'orange'
+                        }[face];
+                        
+                        centerInput.value = defaultColor;
+                    }
+                }
+            });
+        </script>
+    </div>
+</body>
+</html>
